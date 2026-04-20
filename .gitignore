@@ -1,0 +1,51 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Java
+target/
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+.classpath
+.project
+.settings/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.pytest_cache/
+
+# Docker
+docker-compose.override.yml
+
+# Logs
+*.log
+logs/
+
+# IDE temp files
+*.iml
+.gradle/
+
+# OS
+Thumbs.db

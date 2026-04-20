@@ -1,0 +1,17 @@
+{
+  "datacenter": "dc1",
+  "node_name": "eduplatform",
+  "server": true,
+  "ui": true,
+  "client_addr": "0.0.0.0",
+  "bind_addr": "0.0.0.0",
+  "bootstrap_expect": 1,
+  "acl": {
+    "enabled": false,
+    "default_policy": "allow",
+    "down_policy": "extend-cache"
+  },
+  "telemetry": {
+    "prometheus_retention_time": "30s"
+  }
+}

@@ -1,0 +1,154 @@
+services:
+  # ==================== DATABASES ====================
+  platform-mongodb:
+    image: mongo:7.0
+    container_name: platform-mongodb
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: eduplatform
+    volumes:
+      - mongo_data:/data/db
+      - ./infra/mongodb/init.js:/docker-entrypoint-initdb.d/init.js
+    networks:
+      - eduplatform-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  platform-redis:
+    image: redis:7.2-alpine
+    container_name: platform-redis
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: redis123
+    command: >
+      redis-server
+      --requirepass redis123
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - eduplatform-network
+    healthcheck:
+      test: redis-cli -a redis123 ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== MESSAGE QUEUE ====================
+  platform-rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: platform-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./infra/rabbitmq/init.sh:/docker-entrypoint-initdb.d/init.sh
+    networks:
+      - eduplatform-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== SERVICE DISCOVERY ====================
+  platform-consul:
+    image: hashicorp/consul:1.22
+    container_name: platform-consul
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    environment:
+      CONSUL_BIND_INTERFACE: eth0
+    command: agent -server -bootstrap-expect=1 -ui -client=0.0.0.0
+    volumes:
+      - consul_data:/consul/data
+      - ./infra/consul/config.json:/consul/config/config.json
+    networks:
+      - eduplatform-network
+    healthcheck:
+      test: consul members
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== VECTOR DATABASE ====================
+  platform-chromadb:
+    image: chromadb/chroma:latest
+    container_name: platform-chromadb
+    ports:
+      - "8003:8000"
+    environment:
+      CHROMA_DB_IMPL: duckdb
+      PERSIST_DIRECTORY: /chroma/data
+    volumes:
+      - chromadb_data:/chroma/data
+    networks:
+      - eduplatform-network
+    healthcheck:
+      test: curl -f http://localhost:8000/api/v1/heartbeat || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== MONITORING ====================
+  # Mongo Express (MongoDB UI)
+  platform-mongo-express:
+    image: mongo-express:latest
+    container_name: platform-mongo-express
+    ports:
+      - "8083:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
+      ME_CONFIG_MONGODB_SERVER: platform-mongodb
+      ME_CONFIG_MONGODB_PORT: 27017
+    depends_on:
+      platform-mongodb:
+        condition: service_healthy
+    networks:
+      - eduplatform-network
+
+  # Redis Commander (Redis UI)
+  platform-redis-ui:
+    image: rediscommander/redis-commander:latest
+    container_name: platform-redis-ui
+    ports:
+      - "8082:8081"
+    environment:
+      REDIS_HOSTS: default:platform-redis:6379:0:redis123
+    depends_on:
+      platform-redis:
+        condition: service_healthy
+    networks:
+      - eduplatform-network
+
+volumes:
+  mongo_data:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  consul_data:
+    driver: local
+  chromadb_data:
+    driver: local
+
+networks:
+  eduplatform-network:
+    driver: bridge
