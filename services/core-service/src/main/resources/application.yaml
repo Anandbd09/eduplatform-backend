@@ -9,6 +9,9 @@ spring:
 
   # MongoDB Configuration
   data:
+    redis:
+      repositories:
+        enabled: false
     mongodb:
       uri: ${MONGO_URL:mongodb://admin:admin123@localhost:27018/eduplatform?authSource=admin}
       auto-index-creation: true
@@ -22,7 +25,21 @@ spring:
 
   # JPA/Hibernate (not used, just for reference)
   jpa:
+    hibernate:
+      ddl-auto: validate
     show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    placeholders:
+      app_name: EduPlatform
+    out-of-order: false
 
   mail:
     host: ${SMTP_HOST:}
@@ -86,6 +103,8 @@ management:
     health:
       show-details: always
   health:
+    mail:
+      enabled: ${MANAGEMENT_HEALTH_MAIL_ENABLED:false}
     livenessState:
       enabled: true
     readinessState:
@@ -96,6 +115,8 @@ logging:
   level:
     root: INFO
     com.eduplatform: DEBUG
+    com.eduplatform.qa: DEBUG
+    com.eduplatform.recommendation: DEBUG
     org.springframework.data.mongodb: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
@@ -130,6 +151,43 @@ notification:
   push-provider: firebase
   max-retries: 3
   retry-delay-seconds: 300
+
+review:
+  module:
+    edit-window-days: 30
+    max-title-length: 100
+    max-content-length: 5000
+    min-title-length: 5
+    min-content-length: 20
+    default-page-size: 10
+    max-page-size: 100
+    rating-precision: 1
+    auto-approve-reviews: true
+    enable-helpful-voting: true
+    min-helpful-count-for-badge: 5
+    allow-anonymous-reviews: false
+
+qa:
+  module:
+    min-title-length: 5
+    max-title-length: 200
+    min-content-length: 20
+    max-content-length: 5000
+    min-answer-length: 20
+    max-answer-length: 5000
+    default-page-size: 10
+    max-page-size: 100
+    enable-voting: true
+    enable-best-answer: true
+
+recommendation:
+  cache:
+    ttl-hours: 24
+    top-courses-limit: 100
+  algorithm:
+    collaborative-weight: 0.5
+    content-weight: 0.5
+    similarity-threshold: 0.7
 
 # application.yml
 razorpay:

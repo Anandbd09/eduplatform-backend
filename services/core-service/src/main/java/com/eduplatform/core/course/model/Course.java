@@ -38,7 +38,7 @@ public class Course {
 
     private String level;  // BEGINNER, INTERMEDIATE, ADVANCED
 
-    private String status;  // DRAFT, PUBLISHED, ARCHIVED
+    private String status;  // DRAFT, PENDING_APPROVAL, PUBLISHED, REJECTED, REMOVED, ARCHIVED
 
     @Builder.Default
     private List<Module> modules = new ArrayList<>();
@@ -70,4 +70,22 @@ public class Course {
     private LocalDateTime updatedAt;
 
     private LocalDateTime publishedAt;
+
+    private LocalDateTime approvedAt;
+
+    private String approvedBy;
+
+    private String approvalNotes;
+
+    private LocalDateTime rejectedAt;
+
+    private String rejectedBy;
+
+    private String rejectionReason;
+
+    private LocalDateTime removedAt;
+
+    private String removedBy;
+
+    private String removalReason;
 }

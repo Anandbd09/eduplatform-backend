@@ -52,6 +52,13 @@ spring:
           filters:
             - AuthFilter
 
+        - id: core-service-admin
+          uri: lb://core-service
+          predicates:
+            - Path=/api/v1/admin/**
+          filters:
+            - AuthFilter
+
         # Chat Service Routes
         - id: chat-service
           uri: lb://chat-service
@@ -70,12 +77,12 @@ spring:
 
       # CORS configuration
       globalcors:
+        add-to-simple-url-handler-mapping: true
         corsConfigurations:
           '[/**]':
-            allowedOrigins:
-              - "http://localhost:3000"
-              - "http://localhost:3001"
-              - "http://localhost:8084"
+            allowedOriginPatterns:
+              - "http://localhost:*"
+              - "http://127.0.0.1:*"
               - "https://*.eduplatform.com"
             allowedMethods:
               - GET

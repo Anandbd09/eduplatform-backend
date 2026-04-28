@@ -35,7 +35,17 @@ public class User {
 
     private String role;  // STUDENT, INSTRUCTOR, ADMIN
 
-    private String status;  // ACTIVE, INACTIVE, BANNED
+    private String status;  // ACTIVE, INACTIVE, BANNED, SUSPENDED, DELETED
+
+    private LocalDateTime bannedUntil;
+
+    private String banReason;
+
+    private LocalDateTime bannedAt;
+
+    private LocalDateTime suspendedUntil;
+
+    private String suspensionReason;
 
     private String tenantId;
 
@@ -56,4 +66,6 @@ public class User {
     private LocalDateTime updatedAt;
 
     private LocalDateTime lastLoginAt;
+
+    private LocalDateTime deletedAt;
 }

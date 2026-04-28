@@ -4,6 +4,7 @@ import com.eduplatform.core.common.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -34,6 +35,23 @@ public class GlobalExceptionHandler {
                 "Validation failed",
                 "VALIDATION_ERROR",
                 errors.toString()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    /**
+     * Handle malformed JSON request bodies
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<?>> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex,
+            WebRequest request) {
+
+        log.warn("Malformed JSON request: {}", ex.getMostSpecificCause().getMessage());
+
+        ApiResponse<?> response = ApiResponse.error(
+                "Malformed JSON request",
+                "MALFORMED_JSON"
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }

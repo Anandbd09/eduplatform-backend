@@ -3,6 +3,8 @@ package com.eduplatform.core.course.controller;
 import com.eduplatform.core.course.dto.CreateCourseRequest;
 import com.eduplatform.core.course.dto.CourseResponse;
 import com.eduplatform.core.course.dto.ModuleRequest;
+import com.eduplatform.core.course.dto.PatchCourseRequest;
+import com.eduplatform.core.course.dto.UpdateCourseRequest;
 import com.eduplatform.core.course.service.CourseService;
 import com.eduplatform.core.common.response.ApiResponse;
 import com.eduplatform.core.common.security.RequestContext;
@@ -112,7 +114,7 @@ public class CourseController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success(response, "Course published successfully"));
+                .body(ApiResponse.success(response, "Course submitted for approval"));
     }
 
     @GetMapping("/{courseId}")
@@ -129,6 +131,82 @@ public class CourseController {
                 .body(ApiResponse.success(response, "Course retrieved successfully"));
     }
 
+    @PutMapping("/{courseId}")
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<CourseResponse>> updateCourse(
+            @PathVariable String courseId,
+            @Valid @RequestBody UpdateCourseRequest request) {
+
+        log.info("Replace course: {}", courseId);
+
+        CourseResponse response = courseService.updateCourse(
+                courseId,
+                request,
+                requestContext.getUserId(),
+                requestContext.getTenantId()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(response, "Course updated successfully"));
+    }
+
+    @PatchMapping("/{courseId}")
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<CourseResponse>> patchCourse(
+            @PathVariable String courseId,
+            @Valid @RequestBody PatchCourseRequest request) {
+
+        log.info("Patch course: {}", courseId);
+
+        CourseResponse response = courseService.patchCourse(
+                courseId,
+                request,
+                requestContext.getUserId(),
+                requestContext.getTenantId()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(response, "Course updated successfully"));
+    }
+
+    @PostMapping("/{courseId}/archive")
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<CourseResponse>> archiveCourse(
+            @PathVariable String courseId) {
+
+        log.info("Archive course: {}", courseId);
+
+        CourseResponse response = courseService.archiveCourse(
+                courseId,
+                requestContext.getUserId(),
+                requestContext.getTenantId()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(response, "Course archived successfully"));
+    }
+
+    @PostMapping("/{courseId}/restore")
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<CourseResponse>> restoreCourse(
+            @PathVariable String courseId) {
+
+        log.info("Restore course: {}", courseId);
+
+        CourseResponse response = courseService.restoreCourse(
+                courseId,
+                requestContext.getUserId(),
+                requestContext.getTenantId()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(response, "Course restored successfully"));
+    }
+
     @GetMapping("/instructor/my-courses")
     @PreAuthorize("hasRole('INSTRUCTOR')")
     public ResponseEntity<ApiResponse<List<CourseResponse>>> getInstructorCourses() {
@@ -141,6 +219,20 @@ public class CourseController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(response, "Courses retrieved successfully"));
+    }
+
+    @GetMapping("/instructor/my-courses/archived")
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<List<CourseResponse>>> getArchivedInstructorCourses() {
+
+        List<CourseResponse> response = courseService.getArchivedInstructorCourses(
+                requestContext.getUserId(),
+                requestContext.getTenantId()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(response, "Archived courses retrieved successfully"));
     }
 
     @GetMapping("/search")

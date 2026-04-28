@@ -1,0 +1,16 @@
+package com.eduplatform.admin.model;
+
+public enum AdminPermission {
+    MANAGE_USERS,
+    MANAGE_COURSES,
+    MANAGE_PAYMENTS,
+    MANAGE_ADMINS,
+    VIEW_ANALYTICS,
+    MANAGE_DISPUTES,
+    BAN_USERS,
+    DELETE_COURSES,
+    MANAGE_SUBSCRIPTIONS,
+    VIEW_AUDIT_LOGS,
+    MANAGE_REPORTS,
+    ISSUE_REFUNDS
+}
