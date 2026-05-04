@@ -290,11 +290,10 @@ spring:
         tags:
           - service:core
           - version:1.0
-
-# Redis Configuration - Upstash
-spring:
   redis:
     url: ${REDIS_URL:rediss://default:password@host:6379}
+
+# Redis Configuration - Upstash
 
 # Server Configuration
 server:
