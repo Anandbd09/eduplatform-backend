@@ -1,3 +1,227 @@
+#spring:
+#  application:
+#    name: core-service
+#
+#  servlet:
+#    multipart:
+#      max-file-size: ${MULTIPART_MAX_FILE_SIZE:512MB}
+#      max-request-size: ${MULTIPART_MAX_REQUEST_SIZE:512MB}
+#
+#  # MongoDB Configuration
+#  data:
+#    redis:
+#      repositories:
+#        enabled: false
+#    mongodb:
+#      uri: ${MONGO_URL:mongodb://admin:admin123@localhost:27018/eduplatform?authSource=admin}
+#      auto-index-creation: true
+#
+#  # Security Configuration
+##  security:
+##    oauth2:
+##      resourceserver:
+##        jwt:
+##          issuer-uri: http://localhost:8081
+#
+#  # JPA/Hibernate (not used, just for reference)
+#  jpa:
+#    hibernate:
+#      ddl-auto: validate
+#    show-sql: false
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.MySQL8Dialect
+#
+#  flyway:
+#    enabled: true
+#    locations: classpath:db/migration
+#    baseline-on-migrate: true
+#    validate-on-migrate: true
+#    placeholders:
+#      app_name: EduPlatform
+#    out-of-order: false
+#
+#  mail:
+#    host: ${SMTP_HOST:}
+#    port: ${SMTP_PORT:587}
+#    username: ${SMTP_USERNAME:}
+#    password: ${SMTP_PASSWORD:}
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: ${SMTP_STARTTLS_ENABLE:true}
+#          ssl:
+#            enable: ${SMTP_SSL_ENABLE:false}
+#
+#  # AMQP/RabbitMQ
+#  rabbitmq:
+#    host: ${RABBITMQ_HOST:localhost}
+#    port: ${RABBITMQ_PORT:5672}
+#    username: ${RABBITMQ_USERNAME:admin}
+#    password: ${RABBITMQ_PASSWORD:admin123}
+#    virtual-host: ${RABBITMQ_VHOST:/}
+#
+#  # Service Discovery
+#  cloud:
+#    consul:
+#      host: ${CONSUL_HOST:localhost}
+#      port: ${CONSUL_PORT:8500}
+#      discovery:
+#        service-name: core-service
+#        instance-id: core-service-1
+#        prefer-ip-address: true
+#        healthCheckPath: /actuator/health
+#        healthCheckInterval: 10s
+#        tags:
+#          - service:core
+#          - version:1.0
+#
+## Server Configuration
+#server:
+#  port: ${CORE_SERVICE_PORT:8081}
+#  shutdown: graceful
+#
+## JWT Configuration
+#security:
+#  jwt:
+#    secret: ${JWT_SECRET:your-super-secret-key-change-in-production-min-32-chars}
+#    expiry: ${JWT_EXPIRY_MINUTES:30}
+#    refresh-expiry: ${JWT_REFRESH_EXPIRY_DAYS:7}
+#
+## Actuator/Health Checks
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include:
+#          - health
+#          - info
+#          - metrics
+#  endpoint:
+#    health:
+#      show-details: always
+#  health:
+#    mail:
+#      enabled: ${MANAGEMENT_HEALTH_MAIL_ENABLED:false}
+#    livenessState:
+#      enabled: true
+#    readinessState:
+#      enabled: true
+#
+## Logging
+#logging:
+#  level:
+#    root: INFO
+#    com.eduplatform: DEBUG
+#    com.eduplatform.qa: DEBUG
+#    com.eduplatform.recommendation: DEBUG
+#    org.springframework.data.mongodb: DEBUG
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+#
+## Email - Resend
+#email:
+#  provider: ${EMAIL_PROVIDER:smtp}
+#
+#smtp:
+#  from-email: ${SMTP_FROM_EMAIL:${SMTP_USERNAME:}}
+#  from-name: ${SMTP_FROM_NAME:EduPlatform}
+#
+#resend:
+#  api-key: ${RESEND_API_KEY:}
+#  from-email: ${RESEND_FROM_EMAIL:onboarding@resend.dev}
+#  from-name: ${RESEND_FROM_NAME:EduPlatform}
+#
+## SMS - Twilio
+#twilio:
+#  account-sid: ${TWILIO_ACCOUNT_SID:}
+#  auth-token: ${TWILIO_AUTH_TOKEN:}
+#  phone-number: ${TWILIO_PHONE_NUMBER:}
+#
+## Firebase (Push Notifications)
+#firebase:
+#  config: ${FIREBASE_CONFIG_PATH:}
+#
+## Notification Settings
+#notification:
+#  email-provider: ${EMAIL_PROVIDER:smtp}
+#  sms-provider: twilio
+#  push-provider: firebase
+#  max-retries: 3
+#  retry-delay-seconds: 300
+#
+#review:
+#  module:
+#    edit-window-days: 30
+#    max-title-length: 100
+#    max-content-length: 5000
+#    min-title-length: 5
+#    min-content-length: 20
+#    default-page-size: 10
+#    max-page-size: 100
+#    rating-precision: 1
+#    auto-approve-reviews: true
+#    enable-helpful-voting: true
+#    min-helpful-count-for-badge: 5
+#    allow-anonymous-reviews: false
+#
+#qa:
+#  module:
+#    min-title-length: 5
+#    max-title-length: 200
+#    min-content-length: 20
+#    max-content-length: 5000
+#    min-answer-length: 20
+#    max-answer-length: 5000
+#    default-page-size: 10
+#    max-page-size: 100
+#    enable-voting: true
+#    enable-best-answer: true
+#
+#recommendation:
+#  cache:
+#    ttl-hours: 24
+#    top-courses-limit: 100
+#  algorithm:
+#    collaborative-weight: 0.5
+#    content-weight: 0.5
+#    similarity-threshold: 0.7
+#
+## application.yml
+#razorpay:
+#  key-id: ${RAZORPAY_KEY_ID:}
+#  key-secret: ${RAZORPAY_KEY_SECRET:}
+#  webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
+#
+#app:
+#  webhook-url: ${APP_WEBHOOK_URL:http://localhost:8081/api/v1/payments/webhook}
+#  frontend-reset-url: ${FRONTEND_RESET_URL:http://localhost:8084/reset-password}
+#  auth:
+#    password-reset-expiry-minutes: ${PASSWORD_RESET_EXPIRY_MINUTES:30}
+#  media:
+#    storage:
+#      primary-provider: ${MEDIA_STORAGE_PRIMARY_PROVIDER:local}
+#      replica-providers: ${MEDIA_STORAGE_REPLICA_PROVIDERS:}
+#      public-base-url: ${MEDIA_STORAGE_PUBLIC_BASE_URL:http://localhost:8080}
+#      local:
+#        enabled: ${MEDIA_STORAGE_LOCAL_ENABLED:true}
+#        provider-id: ${MEDIA_STORAGE_LOCAL_PROVIDER_ID:local}
+#        base-directory: ${MEDIA_STORAGE_LOCAL_BASE_DIRECTORY:uploads}
+#        public-base-path: ${MEDIA_STORAGE_LOCAL_PUBLIC_BASE_PATH:/media}
+#
+#payment:
+#  order-expiry-minutes: 15
+#  refund-window-days: 30
+
+
+
+
+
+
+
+
 spring:
   application:
     name: core-service
@@ -7,21 +231,14 @@ spring:
       max-file-size: ${MULTIPART_MAX_FILE_SIZE:512MB}
       max-request-size: ${MULTIPART_MAX_REQUEST_SIZE:512MB}
 
-  # MongoDB Configuration
+  # MongoDB Configuration - ATLAS
   data:
     redis:
       repositories:
         enabled: false
     mongodb:
-      uri: ${MONGO_URL:mongodb://admin:admin123@localhost:27018/eduplatform?authSource=admin}
+      uri: ${MONGODB_URI:mongodb+srv://user:password@cluster.mongodb.net/eduplatform?retryWrites=true&w=majority}
       auto-index-creation: true
-
-  # Security Configuration
-#  security:
-#    oauth2:
-#      resourceserver:
-#        jwt:
-#          issuer-uri: http://localhost:8081
 
   # JPA/Hibernate (not used, just for reference)
   jpa:
@@ -55,28 +272,29 @@ spring:
           ssl:
             enable: ${SMTP_SSL_ENABLE:false}
 
-  # AMQP/RabbitMQ
+  # AMQP/RabbitMQ - CloudAMQP
   rabbitmq:
-    host: ${RABBITMQ_HOST:localhost}
-    port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USERNAME:admin}
-    password: ${RABBITMQ_PASSWORD:admin123}
-    virtual-host: ${RABBITMQ_VHOST:/}
+    addresses: ${RABBITMQ_URL:amqps://user:password@host/vhost}
 
-  # Service Discovery
+  # Service Discovery - Consul on localhost (docker container)
   cloud:
     consul:
       host: ${CONSUL_HOST:localhost}
       port: ${CONSUL_PORT:8500}
       discovery:
         service-name: core-service
-        instance-id: core-service-1
+        instance-id: core-service-${spring.application.instance_id:1}
         prefer-ip-address: true
         healthCheckPath: /actuator/health
         healthCheckInterval: 10s
         tags:
           - service:core
           - version:1.0
+
+# Redis Configuration - Upstash
+spring:
+  redis:
+    url: ${REDIS_URL:rediss://default:password@host:6379}
 
 # Server Configuration
 server:
@@ -123,7 +341,7 @@ logging:
 
 # Email - Resend
 email:
-  provider: ${EMAIL_PROVIDER:smtp}
+  provider: ${EMAIL_PROVIDER:resend}
 
 smtp:
   from-email: ${SMTP_FROM_EMAIL:${SMTP_USERNAME:}}
@@ -131,7 +349,7 @@ smtp:
 
 resend:
   api-key: ${RESEND_API_KEY:}
-  from-email: ${RESEND_FROM_EMAIL:onboarding@resend.dev}
+  from-email: ${RESEND_FROM_EMAIL:noreply@eduplatform.com}
   from-name: ${RESEND_FROM_NAME:EduPlatform}
 
 # SMS - Twilio
@@ -146,7 +364,7 @@ firebase:
 
 # Notification Settings
 notification:
-  email-provider: ${EMAIL_PROVIDER:smtp}
+  email-provider: ${EMAIL_PROVIDER:resend}
   sms-provider: twilio
   push-provider: firebase
   max-retries: 3
@@ -189,22 +407,21 @@ recommendation:
     content-weight: 0.5
     similarity-threshold: 0.7
 
-# application.yml
 razorpay:
   key-id: ${RAZORPAY_KEY_ID:}
   key-secret: ${RAZORPAY_KEY_SECRET:}
   webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
 
 app:
-  webhook-url: ${APP_WEBHOOK_URL:http://localhost:8081/api/v1/payments/webhook}
-  frontend-reset-url: ${FRONTEND_RESET_URL:http://localhost:8084/reset-password}
+  webhook-url: ${APP_WEBHOOK_URL:http://34.205.30.68:8081/api/v1/payments/webhook}
+  frontend-reset-url: ${FRONTEND_RESET_URL:http://34.205.30.68:8084/reset-password}
   auth:
     password-reset-expiry-minutes: ${PASSWORD_RESET_EXPIRY_MINUTES:30}
   media:
     storage:
       primary-provider: ${MEDIA_STORAGE_PRIMARY_PROVIDER:local}
       replica-providers: ${MEDIA_STORAGE_REPLICA_PROVIDERS:}
-      public-base-url: ${MEDIA_STORAGE_PUBLIC_BASE_URL:http://localhost:8080}
+      public-base-url: ${MEDIA_STORAGE_PUBLIC_BASE_URL:http://34.205.30.68}
       local:
         enabled: ${MEDIA_STORAGE_LOCAL_ENABLED:true}
         provider-id: ${MEDIA_STORAGE_LOCAL_PROVIDER_ID:local}
