@@ -6,6 +6,10 @@ import com.eduplatform.admin.repository.CourseReportRepository;
 import com.eduplatform.core.common.exception.AppException;
 import com.eduplatform.core.course.model.Course;
 import com.eduplatform.core.course.repository.CourseRepository;
+import com.eduplatform.core.user.model.User;
+import com.eduplatform.core.user.repository.UserRepository;
+import com.eduplatform.notification.dto.NotificationEventPayload;
+import com.eduplatform.notification.service.NotificationQueueService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +29,12 @@ public class CourseModerationService {
 
     @Autowired
     private AuditLogService auditLogService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private NotificationQueueService notificationQueueService;
 
     public void approveCourse(String adminId, String courseId, String notes, String tenantId) {
         try {
@@ -49,6 +59,27 @@ public class CourseModerationService {
             logAuditAction(adminId, AuditAction.COURSE_APPROVED, courseId, "Course approved: " + notes);
 
             log.info("Course approved: {}", courseId);
+
+            try {
+                User instructor = userRepository.findById(course.getInstructorId()).orElse(null);
+                if (instructor != null) {
+                    String instructorName = instructor.getFirstName() + " " + instructor.getLastName();
+                    notificationQueueService.publishCourseApproved(NotificationEventPayload.builder()
+                            .eventType("COURSE_APPROVED")
+                            .courseId(courseId)
+                            .courseTitle(course.getTitle())
+                            .instructorId(course.getInstructorId())
+                            .instructorEmail(instructor.getEmail())
+                            .instructorName(instructorName)
+                            .notes(notes)
+                            .tenantId(tenantId)
+                            .timestamp(java.time.LocalDateTime.now().toString())
+                            .build());
+                }
+            } catch (Exception e) {
+                log.warn("Failed to publish course approved notification for courseId={}: {}", courseId, e.getMessage());
+            }
+
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
@@ -76,6 +107,27 @@ public class CourseModerationService {
             logAuditAction(adminId, AuditAction.COURSE_REJECTED, courseId, "Course rejected: " + reason);
 
             log.info("Course rejected: {}", courseId);
+
+            try {
+                User instructor = userRepository.findById(course.getInstructorId()).orElse(null);
+                if (instructor != null) {
+                    String instructorName = instructor.getFirstName() + " " + instructor.getLastName();
+                    notificationQueueService.publishCourseRejected(NotificationEventPayload.builder()
+                            .eventType("COURSE_REJECTED")
+                            .courseId(courseId)
+                            .courseTitle(course.getTitle())
+                            .instructorId(course.getInstructorId())
+                            .instructorEmail(instructor.getEmail())
+                            .instructorName(instructorName)
+                            .notes(reason)
+                            .tenantId(tenantId)
+                            .timestamp(java.time.LocalDateTime.now().toString())
+                            .build());
+                }
+            } catch (Exception e) {
+                log.warn("Failed to publish course rejected notification for courseId={}: {}", courseId, e.getMessage());
+            }
+
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {

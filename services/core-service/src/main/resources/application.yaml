@@ -411,6 +411,7 @@ razorpay:
   webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
 
 app:
+  admin-email: ${ADMIN_EMAIL:}
   webhook-url: ${APP_WEBHOOK_URL:http://34.205.30.68:8081/api/v1/payments/webhook}
   frontend-reset-url: ${FRONTEND_RESET_URL:http://34.205.30.68:8084/reset-password}
   auth:

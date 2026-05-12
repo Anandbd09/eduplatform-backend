@@ -311,4 +311,56 @@ public class EmailService {
                 user != null ? user.getId() : null,
                 subscription != null ? subscription.getId() : null);
     }
+
+    public void sendCourseSubmittedEmail(String adminEmail, String courseTitle, String instructorName) {
+        if (!StringUtils.hasText(adminEmail)) return;
+        String subject = "New Course Pending Review: " + courseTitle;
+        String htmlContent = """
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+                  <h2>New Course Submitted for Review</h2>
+                  <p>A new course has been submitted and requires your approval.</p>
+                  <table style="border-collapse: collapse; width: 100%%; margin: 16px 0;">
+                    <tr><td style="padding: 8px; font-weight: bold;">Course Title</td><td style="padding: 8px;">%s</td></tr>
+                    <tr><td style="padding: 8px; font-weight: bold;">Instructor</td><td style="padding: 8px;">%s</td></tr>
+                  </table>
+                  <p>Please log in to the admin panel to review and approve or reject this course.</p>
+                  <p>The EduPlatform Team</p>
+                </div>
+                """.formatted(courseTitle, instructorName);
+        sendEmail(adminEmail, subject, htmlContent, null, null);
+    }
+
+    public void sendCourseApprovedEmail(String instructorEmail, String instructorName, String courseTitle, String notes) {
+        if (!StringUtils.hasText(instructorEmail)) return;
+        String recipientName = StringUtils.hasText(instructorName) ? instructorName : "Instructor";
+        String approvalNotes = StringUtils.hasText(notes) ? notes : "No additional notes.";
+        String subject = "Your Course Has Been Approved: " + courseTitle;
+        String htmlContent = """
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+                  <h2>Congratulations, %s!</h2>
+                  <p>Your course <strong>%s</strong> has been reviewed and approved. It is now live on EduPlatform.</p>
+                  <p><strong>Admin Notes:</strong> %s</p>
+                  <p>Students can now find and enroll in your course. Keep up the great work!</p>
+                  <p>Happy teaching!<br/>The EduPlatform Team</p>
+                </div>
+                """.formatted(recipientName, courseTitle, approvalNotes);
+        sendEmail(instructorEmail, subject, htmlContent, null, null);
+    }
+
+    public void sendCourseRejectedEmail(String instructorEmail, String instructorName, String courseTitle, String reason) {
+        if (!StringUtils.hasText(instructorEmail)) return;
+        String recipientName = StringUtils.hasText(instructorName) ? instructorName : "Instructor";
+        String rejectionReason = StringUtils.hasText(reason) ? reason : "Please contact support for details.";
+        String subject = "Your Course Needs Changes: " + courseTitle;
+        String htmlContent = """
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+                  <h2>Hi %s,</h2>
+                  <p>Your course <strong>%s</strong> has been reviewed but requires some changes before it can be published.</p>
+                  <p><strong>Reason:</strong> %s</p>
+                  <p>Please update your course and resubmit for review. If you have questions, contact our support team.</p>
+                  <p>The EduPlatform Team</p>
+                </div>
+                """.formatted(recipientName, courseTitle, rejectionReason);
+        sendEmail(instructorEmail, subject, htmlContent, null, null);
+    }
 }

@@ -17,8 +17,13 @@ import com.eduplatform.core.common.exception.AppException;
 import com.eduplatform.core.media.model.MediaAsset;
 import com.eduplatform.core.media.model.StoredMedia;
 import com.eduplatform.core.media.service.MediaUrlResolver;
+import com.eduplatform.core.user.model.User;
+import com.eduplatform.core.user.repository.UserRepository;
+import com.eduplatform.notification.dto.NotificationEventPayload;
+import com.eduplatform.notification.service.NotificationQueueService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -37,11 +42,20 @@ public class CourseService {
 
     private static final Set<String> HIDDEN_INSTRUCTOR_STATUSES = Set.of("ARCHIVED", "REMOVED");
 
+    @Value("${app.admin-email:}")
+    private String adminEmail;
+
     @Autowired
     private CourseRepository courseRepository;
 
     @Autowired
     private MediaUrlResolver mediaUrlResolver;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private NotificationQueueService notificationQueueService;
 
     public CourseResponse createCourse(CreateCourseRequest request, String instructorId, String tenantId) {
         String pricingType = normalizePricingType(request);
@@ -130,6 +144,27 @@ public class CourseService {
         course = courseRepository.save(course);
 
         log.info("Course submitted for approval: {}", courseId);
+
+        try {
+            if (StringUtils.hasText(adminEmail)) {
+                User instructor = userRepository.findById(instructorId).orElse(null);
+                String instructorName = instructor != null
+                        ? instructor.getFirstName() + " " + instructor.getLastName()
+                        : instructorId;
+                notificationQueueService.publishCourseSubmitted(NotificationEventPayload.builder()
+                        .eventType("COURSE_SUBMITTED")
+                        .courseId(courseId)
+                        .courseTitle(course.getTitle())
+                        .instructorId(instructorId)
+                        .instructorName(instructorName)
+                        .targetEmail(adminEmail)
+                        .tenantId(tenantId)
+                        .timestamp(java.time.LocalDateTime.now().toString())
+                        .build());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to publish course submitted notification for courseId={}: {}", courseId, e.getMessage());
+        }
 
         return mapToCourseResponse(course);
     }
