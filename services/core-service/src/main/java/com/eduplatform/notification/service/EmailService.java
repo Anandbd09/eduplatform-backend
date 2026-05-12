@@ -40,10 +40,10 @@ public class EmailService {
     @Value("${resend.from-name:EduPlatform}")
     private String resendFromName;
 
-    @Value("${spring.mail.username:}")
+    @Value("${SMTP_USERNAME:${spring.mail.username:}}")
     private String smtpUsername;
 
-    @Value("${smtp.from-email:${spring.mail.username:}}")
+    @Value("${SMTP_FROM_EMAIL:${smtp.from-email:${spring.mail.username:}}}")
     private String smtpFromEmail;
 
     @Value("${smtp.from-name:EduPlatform}")
