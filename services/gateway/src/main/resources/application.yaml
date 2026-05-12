@@ -38,6 +38,13 @@ spring:
           filters:
             - AuthFilter
 
+        - id: core-service-wishlist
+          uri: lb://core-service
+          predicates:
+            - Path=/api/v1/wishlist/**
+          filters:
+            - AuthFilter
+
         - id: core-service-live
           uri: lb://core-service
           predicates:

@@ -8,6 +8,8 @@ import com.eduplatform.core.course.dto.UpdateCourseRequest;
 import com.eduplatform.core.course.service.CourseService;
 import com.eduplatform.core.common.response.ApiResponse;
 import com.eduplatform.core.common.security.RequestContext;
+import com.eduplatform.core.enrollment.dto.EnrolledStudentResponse;
+import com.eduplatform.core.enrollment.service.EnrollmentService;
 import com.eduplatform.core.media.model.MediaAsset;
 import com.eduplatform.core.media.model.MediaUploadCategory;
 import com.eduplatform.core.media.service.MediaStorageService;
@@ -31,6 +33,9 @@ public class CourseController {
 
     @Autowired
     private CourseService courseService;
+
+    @Autowired
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private RequestContext requestContext;
@@ -233,6 +238,34 @@ public class CourseController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(response, "Archived courses retrieved successfully"));
+    }
+
+    @GetMapping("/instructor/{courseId}/students")
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    public ResponseEntity<ApiResponse<List<EnrolledStudentResponse>>> getCourseEnrolledStudents(
+            @PathVariable String courseId) {
+
+        List<EnrolledStudentResponse> response = enrollmentService.getEnrolledStudentsForInstructor(
+                courseId,
+                requestContext.getUserId(),
+                requestContext.getTenantId()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(response, "Enrolled students retrieved successfully"));
+    }
+
+    @GetMapping("/catalog")
+    public ResponseEntity<ApiResponse<List<CourseResponse>>> getCatalogCourses() {
+
+        List<CourseResponse> response = courseService.getPublishedCoursesForCatalog(
+                requestContext.getTenantId()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(response, "Catalog courses retrieved successfully"));
     }
 
     @GetMapping("/search")

@@ -9,6 +9,7 @@ import com.eduplatform.payment.model.Subscription;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -19,22 +20,21 @@ import org.springframework.web.client.RestTemplate;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.mail.internet.MimeMessage;
 
-import org.springframework.http.HttpHeaders;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Service
 public class EmailService {
 
-    @Value("${email.provider}") // resend, sendgrid, etc
+    @Value("${email.provider:smtp}")
     private String emailProvider;
 
     @Value("${resend.api-key:}")
     private String resendApiKey;
 
-    @Value("${resend.from-email:onboarding@resend.dev}")
+    @Value("${resend.from-email:noreply@eduplatform.com}")
     private String resendFromEmail;
 
     @Value("${resend.from-name:EduPlatform}")
@@ -49,6 +49,9 @@ public class EmailService {
     @Value("${smtp.from-name:EduPlatform}")
     private String smtpFromName;
 
+    @Value("${app.frontend-url:${app.frontend-reset-url:http://localhost:3000/reset-password}}")
+    private String frontendResetUrl;
+
     @Autowired
     private EmailTemplateRepository templateRepository;
 
@@ -58,7 +61,6 @@ public class EmailService {
     @Autowired
     private JavaMailSender javaMailSender;
 
-    // Send Email using Resend
     public String sendEmailViaResend(String to, String subject, String htmlContent,
                                      String fromEmail, String fromName) {
         try {
@@ -71,7 +73,7 @@ public class EmailService {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "Bearer " + resendApiKey);
+            headers.setBearerAuth(resendApiKey);
 
             Map<String, Object> body = new HashMap<>();
             body.put("from", effectiveFromName + " <" + effectiveFromEmail + ">");
@@ -80,7 +82,6 @@ public class EmailService {
             body.put("html", htmlContent);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-
             ResponseEntity<Map> response = restTemplate.postForEntity(
                     "https://api.resend.com/emails",
                     request,
@@ -88,14 +89,16 @@ public class EmailService {
             );
 
             Map<String, Object> responseBody = response.getBody();
-            String messageId = (String) responseBody.get("id");
+            Object messageId = responseBody != null ? responseBody.get("id") : null;
+            if (messageId == null) {
+                throw new IllegalStateException("Resend response did not include an email id");
+            }
 
-            log.info("Email sent successfully: {}", messageId);
-            return messageId;
-
+            log.info("Email sent successfully via Resend to: {}", to);
+            return messageId.toString();
         } catch (Exception e) {
             log.error("Error sending email via Resend", e);
-            throw new RuntimeException("Failed to send email");
+            throw new RuntimeException("Failed to send email", e);
         }
     }
 
@@ -124,8 +127,16 @@ public class EmailService {
             return "smtp:" + System.currentTimeMillis();
         } catch (Exception e) {
             log.error("Error sending email via SMTP", e);
-            throw new RuntimeException("Failed to send email");
+            throw new RuntimeException("Failed to send email", e);
         }
+    }
+
+    public String logEmail(String to, String subject, String htmlContent,
+                           String fromEmail, String fromName) {
+        String messageId = "log:" + System.currentTimeMillis();
+        log.warn("Email provider is set to log. Email was not sent. id={}, to={}, subject={}, html={}",
+                messageId, to, subject, htmlContent);
+        return messageId;
     }
 
     public String sendEmail(String to, String subject, String htmlContent,
@@ -135,6 +146,9 @@ public class EmailService {
         }
         if ("resend".equalsIgnoreCase(emailProvider)) {
             return sendEmailViaResend(to, subject, htmlContent, fromEmail, fromName);
+        }
+        if ("log".equalsIgnoreCase(emailProvider)) {
+            return logEmail(to, subject, htmlContent, fromEmail, fromName);
         }
         throw new IllegalStateException("Unsupported email provider: " + emailProvider);
     }
@@ -183,11 +197,23 @@ public class EmailService {
 
     // Send Welcome Email
     public void sendWelcomeEmail(String email, String firstName) {
-        Map<String, String> variables = new HashMap<>();
-        variables.put("firstName", firstName);
+        String recipientName = StringUtils.hasText(firstName) ? firstName : "there";
+        String subject = "Welcome to EduPlatform!";
+        String htmlContent = """
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+                  <h2>Welcome to EduPlatform, %s!</h2>
+                  <p>We're excited to have you on board. Start exploring courses and begin your learning journey today.</p>
+                  <p>
+                    <a href="%s" style="display: inline-block; padding: 12px 20px; background: #111827; color: #ffffff; text-decoration: none; border-radius: 6px;">
+                      Start Learning
+                    </a>
+                  </p>
+                  <p>If you have any questions, feel free to reach out to our support team.</p>
+                  <p>Happy learning!<br/>The EduPlatform Team</p>
+                </div>
+                """.formatted(recipientName, frontendResetUrl.replaceAll("/reset-password.*", ""));
 
-        sendEmailWithTemplate(email, "WELCOME_EMAIL", variables,
-                "no-reply@eduplatform.com", "EduPlatform");
+        sendEmail(email, subject, htmlContent, null, null);
     }
 
     // Send Course Enrollment Email

@@ -236,8 +236,9 @@ spring:
     redis:
       repositories:
         enabled: false
+      url: ${REDIS_URL}
     mongodb:
-      uri: ${MONGODB_URI:mongodb+srv://user:password@cluster.mongodb.net/eduplatform?retryWrites=true&w=majority}
+      uri: ${MONGO_URL}
       auto-index-creation: true
 
   # JPA/Hibernate (not used, just for reference)
@@ -274,7 +275,7 @@ spring:
 
   # AMQP/RabbitMQ - CloudAMQP
   rabbitmq:
-    addresses: ${RABBITMQ_URL:amqps://user:password@host/vhost}
+    addresses: ${RABBITMQ_URL}
 
   # Service Discovery - Consul on localhost (docker container)
   cloud:
@@ -290,8 +291,6 @@ spring:
         tags:
           - service:core
           - version:1.0
-  redis:
-    url: ${REDIS_URL:rediss://default:password@host:6379}
 
 # Redis Configuration - Upstash
 
@@ -338,9 +337,9 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
-# Email - Resend
+# Email - SMTP
 email:
-  provider: ${EMAIL_PROVIDER:resend}
+  provider: ${EMAIL_PROVIDER:smtp}
 
 smtp:
   from-email: ${SMTP_FROM_EMAIL:${SMTP_USERNAME:}}
@@ -363,7 +362,7 @@ firebase:
 
 # Notification Settings
 notification:
-  email-provider: ${EMAIL_PROVIDER:resend}
+  email-provider: ${EMAIL_PROVIDER:smtp}
   sms-provider: twilio
   push-provider: firebase
   max-retries: 3
@@ -383,8 +382,8 @@ review:
     enable-helpful-voting: true
     min-helpful-count-for-badge: 5
     allow-anonymous-reviews: false
-
 qa:
+
   module:
     min-title-length: 5
     max-title-length: 200

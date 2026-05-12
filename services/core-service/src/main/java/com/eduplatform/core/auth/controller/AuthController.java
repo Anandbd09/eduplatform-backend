@@ -107,6 +107,7 @@ public class AuthController {
             @RequestParam String resetToken,
             @RequestParam String newPassword) {
 
+
         authService.resetPassword(resetToken, newPassword);
 
         return ResponseEntity

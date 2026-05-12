@@ -38,14 +38,34 @@ public class LoggingAspect {
         try {
             Object result = joinPoint.proceed();
             long responseTime = System.currentTimeMillis() - startTime;
-            monitoringService.logEvent("INFO", "API", "API call successful",
+            logMonitoringEvent("INFO", "API", "API call successful",
                     null, endpoint, method, 200, responseTime, "default");
             return result;
         } catch (Exception e) {
             long responseTime = System.currentTimeMillis() - startTime;
-            monitoringService.logEvent("ERROR", "API", "API call failed: " + e.getMessage(),
+            logMonitoringEvent("ERROR", "API", "API call failed: " + e.getMessage(),
                     null, endpoint, method, 500, responseTime, "default");
             throw e;
+        }
+    }
+
+    private void logMonitoringEvent(String level, String category, String message, String userId,
+                                    String endpoint, String httpMethod, Integer httpStatus,
+                                    Long responseTimeMs, String tenantId) {
+        try {
+            monitoringService.logEvent(
+                    level,
+                    category,
+                    message,
+                    userId,
+                    endpoint,
+                    httpMethod,
+                    httpStatus,
+                    responseTimeMs,
+                    tenantId
+            );
+        } catch (Exception e) {
+            log.warn("Monitoring event logging failed for {} {}: {}", httpMethod, endpoint, e.getMessage());
         }
     }
 }

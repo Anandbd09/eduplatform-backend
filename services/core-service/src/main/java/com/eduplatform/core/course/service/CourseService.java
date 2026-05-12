@@ -259,6 +259,13 @@ public class CourseService {
                 .collect(Collectors.toList());
     }
 
+    public List<CourseResponse> getPublishedCoursesForCatalog(String tenantId) {
+        return courseRepository.findByStatusAndTenantIdOrderByPublishedAtDescCreatedAtDesc("PUBLISHED", tenantId)
+                .stream()
+                .map(this::mapToCourseResponse)
+                .collect(Collectors.toList());
+    }
+
     public List<CourseResponse> searchPublishedCourses(String query, String tenantId) {
 
         return courseRepository.searchPublishedCourses(tenantId, query)

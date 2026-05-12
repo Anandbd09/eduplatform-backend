@@ -19,6 +19,12 @@ public class EnrollmentResponse {
 
     private String courseId;
 
+    private String courseTitle;
+
+    private String courseThumbnailUrl;
+
+    private String courseStatus;
+
     private String status;
 
     private double progressPercentage;

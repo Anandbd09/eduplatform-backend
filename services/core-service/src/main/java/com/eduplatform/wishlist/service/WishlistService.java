@@ -1,5 +1,9 @@
 package com.eduplatform.wishlist.service;
 
+import com.eduplatform.core.course.model.Course;
+import com.eduplatform.core.course.repository.CourseRepository;
+import com.eduplatform.core.user.model.User;
+import com.eduplatform.core.user.repository.UserRepository;
 import com.eduplatform.wishlist.model.Wishlist;
 import com.eduplatform.wishlist.model.WishlistItem;
 import com.eduplatform.wishlist.dto.WishlistResponse;
@@ -14,14 +18,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Slf4j
 @Service
-@Transactional
 public class WishlistService {
 
     @Autowired
@@ -29,6 +34,12 @@ public class WishlistService {
 
     @Autowired
     private WishlistItemRepository wishlistItemRepository;
+
+    @Autowired
+    private CourseRepository courseRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      * Get or create user wishlist
@@ -74,6 +85,27 @@ public class WishlistService {
             // Check if already in wishlist
             if (wishlistItemRepository.existsByUserIdAndCourseIdAndTenantId(userId, courseId, tenantId)) {
                 throw new WishlistException("Course already in wishlist");
+            }
+
+            Course course = null;
+            if (!StringUtils.hasText(courseName)) {
+                course = courseRepository.findByIdAndTenantId(courseId, tenantId)
+                        .orElseThrow(() -> new WishlistException("Course not found"));
+                courseName = course.getTitle();
+            }
+
+            if (course != null) {
+                courseImage = firstText(courseImage, course.getThumbnailUrl());
+                courseDescription = firstText(courseDescription, course.getDescription());
+                coursePrice = coursePrice != null ? coursePrice : resolveCoursePrice(course);
+                courseRating = courseRating != null ? courseRating : course.getRating();
+                instructorId = firstText(instructorId, course.getInstructorId());
+            }
+
+            if (!StringUtils.hasText(instructorName) && StringUtils.hasText(instructorId)) {
+                instructorName = userRepository.findByIdAndTenantId(instructorId, tenantId)
+                        .map(this::formatUserName)
+                        .orElse(null);
             }
 
             WishlistItem item = WishlistItem.builder()
@@ -242,14 +274,20 @@ public class WishlistService {
      * Update wishlist item count
      */
     private void updateWishlistItemCount(String userId, String tenantId) {
+        Long count = wishlistItemRepository.countByUserIdAndTenantId(userId, tenantId);
         Wishlist wishlist = wishlistRepository.findByUserIdAndTenantId(userId, tenantId)
-                .orElse(null);
+                .orElseGet(() -> Wishlist.builder()
+                        .id(UUID.randomUUID().toString())
+                        .userId(userId)
+                        .totalCollections(0)
+                        .createdAt(LocalDateTime.now())
+                        .tenantId(tenantId)
+                        .version(0L)
+                        .build());
 
-        if (wishlist != null) {
-            Long count = wishlistItemRepository.countByUserIdAndTenantId(userId, tenantId);
-            wishlist.setTotalItems(count.intValue());
-            wishlistRepository.save(wishlist);
-        }
+        wishlist.setTotalItems(count.intValue());
+        wishlist.setUpdatedAt(LocalDateTime.now());
+        wishlistRepository.save(wishlist);
     }
 
     /**
@@ -289,5 +327,21 @@ public class WishlistService {
                 .markedFavoriteAt(item.getMarkedFavoriteAt())
                 .collectionCount(item.getCollectionIds() != null ? item.getCollectionIds().size() : 0)
                 .build();
+    }
+
+    private String firstText(String preferred, String fallback) {
+        return StringUtils.hasText(preferred) ? preferred : fallback;
+    }
+
+    private Double resolveCoursePrice(Course course) {
+        BigDecimal displayPrice = course.getDiscountPrice() != null ? course.getDiscountPrice() : course.getPrice();
+        return displayPrice != null ? displayPrice.doubleValue() : null;
+    }
+
+    private String formatUserName(User user) {
+        String fullName = ((user.getFirstName() != null ? user.getFirstName() : "") + " "
+                + (user.getLastName() != null ? user.getLastName() : "")).trim();
+
+        return StringUtils.hasText(fullName) ? fullName : user.getEmail();
     }
 }

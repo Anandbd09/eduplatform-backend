@@ -16,6 +16,8 @@ public interface EnrollmentRepository extends MongoRepository<Enrollment, String
 
     List<Enrollment> findByCourseIdAndTenantId(String courseId, String tenantId);
 
+    List<Enrollment> findByCourseIdAndTenantIdOrderByEnrolledAtDesc(String courseId, String tenantId);
+
     List<Enrollment> findByUserIdAndStatusAndTenantId(String userId, String status, String tenantId);
 
     long countByCourseIdAndStatusAndTenantId(String courseId, String status, String tenantId);

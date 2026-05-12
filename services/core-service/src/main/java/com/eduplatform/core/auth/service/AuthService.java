@@ -73,6 +73,12 @@ public class AuthService {
 
         user = userRepository.save(user);
 
+        try {
+            emailService.sendWelcomeEmail(user.getEmail(), user.getFirstName());
+        } catch (Exception e) {
+            log.warn("Welcome email failed for {}: {}", user.getEmail(), e.getMessage());
+        }
+
         // Generate tokens
         String accessToken = tokenProvider.generateAccessToken(
                 user.getId(), user.getEmail(), user.getRole(), user.getTenantId()

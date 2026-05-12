@@ -17,6 +17,8 @@ public interface CourseRepository extends MongoRepository<Course, String> {
 
     List<Course> findByStatusAndTenantId(String status, String tenantId);
 
+    List<Course> findByStatusAndTenantIdOrderByPublishedAtDescCreatedAtDesc(String status, String tenantId);
+
     @Query("{ 'tenantId': ?0, 'status': 'PUBLISHED', 'title': { $regex: ?1, $options: 'i' } }")
     List<Course> searchPublishedCourses(String tenantId, String query);
 

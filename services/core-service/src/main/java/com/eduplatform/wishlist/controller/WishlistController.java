@@ -59,7 +59,7 @@ public class WishlistController {
     @PostMapping("/courses/{courseId}")
     public ResponseEntity<?> addToWishlist(
             @PathVariable String courseId,
-            @RequestParam String courseName,
+            @RequestParam(required = false) String courseName,
             @RequestParam(required = false) String courseImage,
             @RequestParam(required = false) String courseDescription,
             @RequestParam(required = false) Double coursePrice,

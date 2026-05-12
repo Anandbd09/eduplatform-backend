@@ -30,6 +30,7 @@ public class SecurityFilterChainConfig {
         String publicMediaPattern = normalizeMediaPattern();
 
         http
+                .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .addFilterBefore(headerAuthenticationFilter, AnonymousAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
